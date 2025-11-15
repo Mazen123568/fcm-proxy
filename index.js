@@ -1,6 +1,8 @@
 const express = require("express");
-const fetch = require("node-fetch");
 const app = express();
+
+// استخدم fetch مباشرة (متوفر في Node 18+ بدون استيراد)
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 app.use(express.json());
 
@@ -30,6 +32,7 @@ app.post("/send", async (req, res) => {
   }
 });
 
+// Render يعطي port تلقائي
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("🔥 FCM Proxy running on PORT " + PORT);
