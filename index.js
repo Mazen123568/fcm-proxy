@@ -6,35 +6,35 @@ import fs from "fs";
 const app = express();
 app.use(express.json());
 
-// تحميل ملف الخدمة
-const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-
-if (!serviceAccountPath) {
-  console.error("❌ Missing GOOGLE_APPLICATION_CREDENTIALS");
-}
-
-const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
+// تحميل ملف الخدمة من مجلد secrets في Render
+const serviceAccount = JSON.parse(
+  fs.readFileSync("/etc/secrets/firebase.json", "utf8")
+);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
-console.log("🔥 Firebase Admin Loaded");
-
+// مسار الإرسال
 app.post("/send", async (req, res) => {
   try {
-    const response = await admin.messaging().sendMulticast({
-      tokens: req.body.registration_ids,
-      notification: req.body.notification,
-      data: req.body.data
+    const result = await admin.messaging().send({
+      token: req.body.token,
+      notification: {
+        title: req.body.title,
+        body: req.body.body,
+        imageUrl: req.body.image
+      },
+      data: req.body.data || {}
     });
 
-    res.send(response);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("FCM Error");
+    return res.send({ success: true, id: result });
+
+  } catch (error) {
+    console.error("FCM Error:", error);
+    return res.status(500).send(error.message);
   }
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("🔥 FCM Proxy running on PORT " + PORT));
+app.listen(PORT, () => console.log(`🔥 FCM Proxy running on PORT ${PORT}`));
