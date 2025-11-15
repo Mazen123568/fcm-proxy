@@ -6,11 +6,17 @@ app.use(express.json());
 
 app.post("/send", async (req, res) => {
   try {
+    const SERVER_KEY = process.env.FCM_SERVER_KEY;
+
+    if (!SERVER_KEY) {
+      return res.status(500).send("❌ Missing FCM_SERVER_KEY on Render");
+    }
+
     const fcmResponse = await fetch("https://fcm.googleapis.com/fcm/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "key=YOUR_SERVER_KEY"
+        "Authorization": "key=" + SERVER_KEY
       },
       body: JSON.stringify(req.body)
     });
@@ -24,7 +30,7 @@ app.post("/send", async (req, res) => {
   }
 });
 
-// Render automatically sets PORT
+// Render will assign PORT automatically
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("🔥 FCM Proxy running on PORT " + PORT);
