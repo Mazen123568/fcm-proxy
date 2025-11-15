@@ -4,7 +4,6 @@ const app = express();
 
 app.use(express.json());
 
-// 🔥 FCM Proxy Endpoint
 app.post("/send", async (req, res) => {
   try {
     const SERVER_KEY = process.env.FCM_SERVER_KEY;
@@ -26,12 +25,11 @@ app.post("/send", async (req, res) => {
     return res.send(data);
 
   } catch (error) {
-    console.error("❌ Proxy Error: ", error);
+    console.error(error);
     return res.status(500).send("FCM Proxy Error");
   }
 });
 
-// 🚀 Render auto PORT assignment
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("🔥 FCM Proxy running on PORT " + PORT);
