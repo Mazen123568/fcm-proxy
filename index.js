@@ -1,33 +1,31 @@
-import express from "express";
-import fetch from "node-fetch";
-import bodyParser from "body-parser";
-
+const express = require("express");
+const fetch = require("node-fetch");
 const app = express();
-app.use(bodyParser.json());
+
+app.use(express.json());
 
 app.post("/send", async (req, res) => {
-    try {
-        const SERVER_KEY = process.env.FCM_SERVER_KEY;
+  try {
+    const fcmResponse = await fetch("https://fcm.googleapis.com/fcm/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "key=YOUR_SERVER_KEY"
+      },
+      body: JSON.stringify(req.body)
+    });
 
-        const response = await fetch("https://fcm.googleapis.com/fcm/send", {
-            method: "POST",
-            headers: {
-                "Authorization": "key=" + SERVER_KEY,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(req.body)
-        });
+    const data = await fcmResponse.text();
+    return res.send(data);
 
-        const data = await response.text();
-        res.send(data);
-    } catch (error) {
-        res.status(500).send("Proxy Error: " + error.toString());
-    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("FCM Proxy Error");
+  }
 });
 
-app.get("/", (req, res) => {
-    res.send("FCM Proxy is running 🔥");
+// Render automatically sets PORT
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log("🔥 FCM Proxy running on PORT " + PORT);
 });
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on port " + PORT));
